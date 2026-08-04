@@ -13,7 +13,8 @@ st.markdown("---")
 CARPETA_RAIZ = "REGISTROS_STOCK"
 fecha_actual = datetime.now()
 nombre_mes = fecha_actual.strftime("%B %Y").upper()
-fecha_archivo = fecha_actual.strftime("%A %d-%m-%Y")
+fecha_archivo = fecha_actual.strftime("%d-%m-%Y")
+fecha_mostrar = fecha_actual.strftime("%d/%m/%Y")
 ruta_completa = os.path.join(CARPETA_RAIZ, nombre_mes)
 
 # Crear carpetas si no existen
@@ -39,8 +40,8 @@ dia = st.selectbox(
     "Elige el día de la semana",
     ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"]
 )
-st.subheader(f"📋 Día: {dia} | Fecha: {fecha_actual.strftime('%d/%m/%Y')}")
-st.info(f"📂 Se guardará en: {CARPETA_RAIZ} / {nombre_mes} / {fecha_archivo}")
+st.subheader(f"📋 Día: {dia} | Fecha: {fecha_mostrar}")
+st.info(f"📂 Se guardará en: {CARPETA_RAIZ}/{nombre_mes}/{fecha_archivo}.json")
 st.markdown("---")
 
 # Colores
