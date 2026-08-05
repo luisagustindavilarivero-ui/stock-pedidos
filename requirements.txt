@@ -1,3 +1,4 @@
 streamlit
 gitpython
-streamlit-gsheets
+pandas
+gspread
