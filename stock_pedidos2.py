@@ -242,7 +242,7 @@ for nombre, cantidad_pedir in productos:
         value=valor_guardado,
         step=paso,
         format="%d",
-        key=f"{dia}_{nombre}"
+        key=f"{dia}_{nombre}_{cantidad_pedir}"
     )
     
     # ✅ ESTAS LÍNEAS SON LAS QUE FALTABAN
