@@ -185,18 +185,40 @@ productos_por_dia = {
     ]
 }
 
-# Cargar productos y guardar datos
+# Cargar productos y guardar datos SIN PERDER NADA
 productos = productos_por_dia.get(dia, [])
 datos_finales = {}
 
+# Espacio para guardar lo que escribas
+if "datos_stock" not in st.session_state:
+    st.session_state.datos_stock = {}
+
 for nombre, cantidad_pedir in productos:
+    # Valor guardado, siempre múltiplo de 2
+    valor_guardado = st.session_state.datos_stock.get(nombre, 0)
+    # Aseguramos que nunca quede un número que no sea de 2 en 2
+    valor_guardado = round(valor_guardado / 2) * 2
+
+    # Campo ajustado EXACTAMENTE a tu necesidad
     stock_actual = st.number_input(
         f"{nombre}",
-        min_value=0.0,
-        value=0.0,
-        step=0.5,
+        min_value=0,          # No hay decimales
+        max_value=200,        # Límite razonable, lo cambias si quieres
+        value=valor_guardado, # Muestra lo que tenías guardado
+        step=2,               # ✅ SUMA Y RESTA DE 2 EN 2
+        format="%d",          # ✅ MUESTRA SOLO NÚMEROS ENTEROS, SIN .00
         key=f"{dia}_{nombre}"
     )
+    # ✅ ESTA LÍNEA ES LA QUE LO GUARDA SIEMPRE
+    st.session_state.datos_stock[nombre] = stock_actual
+    
+    datos_finales[nombre] = {
+        "pedir": cantidad_pedir,
+        "stock": stock_actual
+    }
+    
+    # Guardamos automáticamente
+    st.session_state.datos_stock[nombre] = stock_actual
     
     datos_finales[nombre] = {
         "pedir": cantidad_pedir,
