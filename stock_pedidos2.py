@@ -293,19 +293,23 @@ for indice, (nombre, cantidad_pedir) in enumerate(productos):
     st.markdown("---")
 
 # Botón seguro: GUARDA Y TE LO BAJA A TU CELULAR
-if st.button("💾 GUARDAR DEFINITIVAMENTE"):
-    datos_para_guardar = []
-    fecha_hoy = fecha_actual.strftime("%d/%m/%Y")
-
-    for nombre, datos in datos_finales.items():
-        datos_para_guardar.append({
-            "Fecha": fecha_hoy,
-            "Dia": dia,
-            "Producto": nombre,
-            "Cantidad_Pedir": datos["pedir"],
-            "Stock_Actual": st.session_state.datos_stock.get(nombre, 0)
-        })
-
-    conn.update(worksheet="Hoja 1", data=datos_para_guardar)
-    st.success("✅ ¡GUARDADO EN LA NUBE! No se borrará nunca más.")
-    st.balloons()
+# 💾 GUARDAR Y DESCARGAR DE VERDAD A TU CELULAR
+if st.button("💾 GUARDAR Y BAJAR ARCHIVO"):
+    fecha_actual = datetime.now()
+    registro = {
+        "fecha": fecha_actual.strftime("%d/%m/%Y"),
+        "productos": st.session_state.datos_stock
+    }
+    contenido = json.dumps(registro, ensure_ascii=False, indent=2)
+    
+    st.success("✅ ¡LISTO! PULSA EL BOTÓN AZUL ABAJO INMEDIATAMENTE ⬇️")
+    
+    # ESTE BOTÓN SÍ TE LO BAJA A TU CELULAR
+    st.download_button(
+        label="📥 GUARDAR EN DESCARGAS",
+        data=contenido,
+        file_name=f"stock_{fecha_actual.strftime('%d-%m-%Y')}.json",
+        mime="application/json"
+    )
+    
+    st.warning("⚠️ NO CIERRES LA PÁGINA HASTA VER QUE SE DESCARGÓ.")
