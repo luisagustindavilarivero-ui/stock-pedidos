@@ -8,7 +8,16 @@ st.set_page_config(page_title="Stock Organizado por Fecha", layout="wide")
 st.title("📦 STOCK Y PEDIDOS - GUARDADO POR MES Y DÍA")
 st.caption("Cada día se guarda en su carpeta del mes, puedes consultar el historial cuando quieras")
 st.markdown("---")
-
+# 📂 RECUPERAR SI SE REINICIA LA APP
+archivo_subido = st.file_uploader("¿Quedó todo en 0? Sube tu archivo guardado aquí:", type="json")
+if archivo_subido:
+    try:
+        datos_recuperados = json.load(archivo_subido)
+        st.session_state.datos_stock = datos_recuperados.get("productos", {})
+        st.success("✅ ¡RECUPERADO! Ya tienes tus números de vuelta.")
+    except:
+        st.error("❌ No se pudo leer el archivo, revisa que sea el correcto.")
+        
 # Configuración de rutas y nombres
 CARPETA_RAIZ = "REGISTROS_STOCK"
 fecha_actual = datetime.now()
@@ -255,9 +264,23 @@ for indice, (nombre, cantidad_pedir) in enumerate(productos):
             st.write(f"👉 Pedir: {cantidad_pedir} | Tienes: {stock_actual} | **COMPLETO: {VERDE}{abs(falta)} DE SOBRANTE{FIN}**")
     st.markdown("---")
 
-# Botón para guardar definitivamente
-if st.button("💾 GUARDAR STOCK DEL DÍA DEFINITIVAMENTE"):
-    guardar_registro(dia, datos_finales)
-    st.balloons()
-    st.success(f"✅ PERFECTO! El stock se guardó en: {CARPETA_RAIZ}/{nombre_mes}/{fecha_archivo}.json")
-    st.info("Ahora puedes cerrar la página, todo quedó guardado y ordenado.")
+# Botón seguro: GUARDA Y TE LO BAJA A TU CELULAR
+if st.button("💾 GUARDAR STOCK Y DESCARGAR ARCHIVO"):
+    # Creamos el archivo con todo lo que hiciste
+    registro_completo = {
+        "fecha": fecha_actual.strftime("%d/%m/%Y"),
+        "dia": dia,
+        "productos": st.session_state.datos_stock
+    }
+    contenido = json.dumps(registro_completo, ensure_ascii=False, indent=2)
+    
+    st.success("✅ ¡LISTO! Todo procesado correctamente.")
+    
+    # Botón para bajarlo a tu celular/computadora
+    st.download_button(
+        label="📥 PULSA AQUÍ PARA GUARDARLO EN TU CELULAR",
+        data=contenido,
+        file_name=f"stock_{fecha_archivo}.json",
+        mime="application/json"
+    )
+    st.info("⚠️ IMPORTANTE: Guarda este archivo en tu carpeta DESCARGAS. Si la app se reinicia, lo subes y recuperas todo en un segundo.")
