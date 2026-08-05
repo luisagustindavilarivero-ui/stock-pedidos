@@ -215,7 +215,11 @@ if "datos_stock" not in st.session_state:
 # ✅ Bucle único, sin repeticiones
 for indice, (nombre, cantidad_pedir) in enumerate(productos):
     valor_guardado = st.session_state.datos_stock.get(nombre, 0)
-    valor_guardado = round(valor_guardado) # Siempre entero
+    # Aseguramos que sea número entero sin errores
+    try:
+        valor_guardado = int(round(float(valor_guardado)))
+    except:
+        valor_guardado = 0
 
     # Definimos el paso según el producto
     if "x kilo" in nombre.lower():
