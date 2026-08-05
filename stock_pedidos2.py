@@ -4,6 +4,8 @@ import os
 import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
+# ✅ AGREGAS ESTA LÍNEA NUEVA:
+from datetime import datetime
 
 # Reemplaza tu bloque de conexión por esto:
 try:
@@ -46,7 +48,7 @@ if archivo_subido:
         
 # Configuración de rutas y nombres
 CARPETA_RAIZ = "REGISTROS_STOCK"
-fecha_actual = datetime.datetime.now()
+fecha_actual = datetime.now()
 nombre_mes = fecha_actual.strftime("%B %Y").upper()
 fecha_archivo = fecha_actual.strftime("%d-%m-%Y")
 fecha_mostrar = fecha_actual.strftime("%d/%m/%Y")
