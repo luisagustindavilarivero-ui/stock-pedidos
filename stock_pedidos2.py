@@ -194,22 +194,25 @@ if "datos_stock" not in st.session_state:
     st.session_state.datos_stock = {}
 
 for nombre, cantidad_pedir in productos:
-    # Valor guardado, siempre múltiplo de 2
     valor_guardado = st.session_state.datos_stock.get(nombre, 0)
-    # Aseguramos que nunca quede un número que no sea de 2 en 2
-    valor_guardado = round(valor_guardado / 2) * 2
+    valor_guardado = round(valor_guardado) # Siempre entero
 
-    # Campo ajustado EXACTAMENTE a tu necesidad
+    # ✅ Definimos el paso según el producto
+    if "x kilo" in nombre.lower():
+        paso = 2  # 📦 Kilos: de 2 en 2
+    else:
+        paso = 1  # 🧺 Unidades: de 1 en 1 (anana, mango, etc.)
+
     stock_actual = st.number_input(
         f"{nombre}",
-        min_value=0,          # No hay decimales
-        max_value=200,        # Límite razonable, lo cambias si quieres
-        value=valor_guardado, # Muestra lo que tenías guardado
-        step=2,               # ✅ SUMA Y RESTA DE 2 EN 2
-        format="%d",          # ✅ MUESTRA SOLO NÚMEROS ENTEROS, SIN .00
+        min_value=0,
+        max_value=200,
+        value=valor_guardado,
+        step=paso, # Aquí usamos el paso que corresponde
+        format="%d",
         key=f"{dia}_{nombre}"
     )
-    # ✅ ESTA LÍNEA ES LA QUE LO GUARDA SIEMPRE
+    
     st.session_state.datos_stock[nombre] = stock_actual
     
     datos_finales[nombre] = {
