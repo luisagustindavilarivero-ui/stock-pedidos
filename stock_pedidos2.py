@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from datetime import datetime
+import pytz
 
 # Configuración general
 st.set_page_config(page_title="Stock Organizado por Fecha", layout="wide")
@@ -11,7 +12,8 @@ st.markdown("---")
 
 # Configuración de rutas y nombres
 CARPETA_RAIZ = "REGISTROS_STOCK"
-fecha_actual = datetime.now()
+zona_uruguay = pytz.timezone("America/Montevideo")
+fecha_actual = datetime.now(zona_uruguay)
 nombre_mes = fecha_actual.strftime("%B %Y").upper()
 fecha_archivo = fecha_actual.strftime("%d-%m-%Y")
 fecha_mostrar = fecha_actual.strftime("%d/%m/%Y")
