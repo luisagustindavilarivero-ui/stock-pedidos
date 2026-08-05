@@ -1,7 +1,22 @@
 import streamlit as st
 import json
 import os
-from datetime import datetime
+from streamlit_gsheets import GSheetsConnection
+
+# Inicializamos conexión y memoria
+conn = st.connection("gsheets", type=GSheetsConnection)
+
+if "datos_stock" not in st.session_state:
+    st.session_state.datos_stock = {}
+    # Intentamos cargar lo que ya tengas guardado
+    try:
+        df = conn.read()
+        if not df.empty:
+            for _, fila in df.iterrows():
+                st.session_state.datos_stock[str(fila["Producto"])] = int(fila["Stock_Actual"])
+            st.success("✅ CARGADO LO QUE TENÍAS HECHO!")
+    except:
+        st.info("Empieza registro nuevo.")
 
 # Configuración general
 st.set_page_config(page_title="Stock Organizado por Fecha", layout="wide")
@@ -265,22 +280,19 @@ for indice, (nombre, cantidad_pedir) in enumerate(productos):
     st.markdown("---")
 
 # Botón seguro: GUARDA Y TE LO BAJA A TU CELULAR
-if st.button("💾 GUARDAR STOCK Y DESCARGAR ARCHIVO"):
-    # Creamos el archivo con todo lo que hiciste
-    registro_completo = {
-        "fecha": fecha_actual.strftime("%d/%m/%Y"),
-        "dia": dia,
-        "productos": st.session_state.datos_stock
-    }
-    contenido = json.dumps(registro_completo, ensure_ascii=False, indent=2)
-    
-    st.success("✅ ¡LISTO! Todo procesado correctamente.")
-    
-    # Botón para bajarlo a tu celular/computadora
-    st.download_button(
-        label="📥 PULSA AQUÍ PARA GUARDARLO EN TU CELULAR",
-        data=contenido,
-        file_name=f"stock_{fecha_archivo}.json",
-        mime="application/json"
-    )
-    st.info("⚠️ IMPORTANTE: Guarda este archivo en tu carpeta DESCARGAS. Si la app se reinicia, lo subes y recuperas todo en un segundo.")
+if st.button("💾 GUARDAR DEFINITIVAMENTE"):
+    datos_para_guardar = []
+    fecha_hoy = fecha_actual.strftime("%d/%m/%Y")
+
+    for nombre, datos in datos_finales.items():
+        datos_para_guardar.append({
+            "Fecha": fecha_hoy,
+            "Dia": dia,
+            "Producto": nombre,
+            "Cantidad_Pedir": datos["pedir"],
+            "Stock_Actual": st.session_state.datos_stock.get(nombre, 0)
+        })
+
+    conn.update(worksheet="Hoja 1", data=datos_para_guardar)
+    st.success("✅ ¡GUARDADO EN LA NUBE! No se borrará nunca más.")
+    st.balloons()
