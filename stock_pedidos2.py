@@ -22,7 +22,7 @@ os.makedirs(ruta_completa, exist_ok=True)
 
 # Función para guardar el registro del día
 def guardar_registro(dia, datos_productos):
-        import subprocess
+    import subprocess
 
     # Datos completos del registro
     registro_completo = {
