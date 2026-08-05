@@ -22,19 +22,43 @@ os.makedirs(ruta_completa, exist_ok=True)
 
 # Función para guardar el registro del día
 def guardar_registro(dia, datos_productos):
-    nombre_archivo = f"{fecha_archivo}.json"
-    ruta_archivo = os.path.join(ruta_completa, nombre_archivo)
-    
+        import subprocess
+
+    # Datos completos del registro
     registro_completo = {
         "fecha": fecha_actual.strftime("%d/%m/%Y"),
         "dia_semana": dia,
         "hora_registro": fecha_actual.strftime("%H:%M"),
         "productos": datos_productos
     }
-    
+
+    # Nombres y enlaces directos a GitHub
+    nombre_archivo = f"{fecha_archivo}.json"
+    ruta_archivo = os.path.join(ruta_completa, nombre_archivo)
+    enlace_carpeta = "https://github.com/luisagustindavilarivero-ui/stock-pedidos/tree/main/REGISTROS_STOCK"
+    enlace_archivo = f"https://github.com/luisagustindavilarivero-ui/stock-pedidos/blob/main/{CARPETA_RAIZ}/{nombre_mes}/{nombre_archivo}"
+
+    # Guardar el archivo
     with open(ruta_archivo, "w", encoding="utf-8") as f:
         json.dump(registro_completo, f, ensure_ascii=False, indent=2)
 
+    # Subir automáticamente a tu repositorio
+    try:
+        subprocess.run(["git", "config", "--global", "user.email", "luisagustindavilarivero-ui@users.noreply.github.com"], check=True)
+        subprocess.run(["git", "config", "--global", "user.name", "luisagustindavilarivero-ui"], check=True)
+        subprocess.run(["git", "add", ruta_archivo], check=True)
+        subprocess.run(["git", "commit", "-m", f"Registro guardado: {fecha_archivo} - {dia}"], check=True)
+        subprocess.run(["git", "push"], check=True)
+
+        # Mensajes con enlaces clicables
+        st.success("✅ GUARDADO EXITOSO Y SUBIDO A GITHUB!")
+        st.markdown(f"📂 **Abrir este archivo:** [{CARPETA_RAIZ}/{nombre_mes}/{nombre_archivo}]({enlace_archivo})")
+        st.markdown(f"[📂 VER TODA LA CARPETA DE REGISTROS]({enlace_carpeta})")
+        st.info("Toca los enlaces para abrir, ver o modificar directamente en GitHub.")
+
+    except Exception as e:
+        st.error(f"⚠️ El archivo se guardó, hubo un detalle al subir: {str(e)}")
+        st.markdown(f"[📂 Ir a mi repositorio](https://github.com/luisagustindavilarivero-ui/stock-pedidos)")
 # Seleccionar día
 dia = st.selectbox(
     "Elige el día de la semana",
