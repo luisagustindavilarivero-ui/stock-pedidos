@@ -7,29 +7,21 @@ from google.oauth2.service_account import Credentials
 # ✅ AGREGAS ESTA LÍNEA NUEVA:
 from datetime import datetime
 
-# Reemplaza tu bloque de conexión por esto:
-try:
-    SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=SCOPES)
-    cliente = gspread.authorize(creds)
-    HOJA_ID = st.secrets["hoja_id"]
-    hoja = cliente.open_by_key(HOJA_ID).sheet1
+# 📂 RECUPERAR ANTES DE MOSTRAR NADA
+st.subheader("🔄 CARGAR TUS DATOS")
+archivo_subido = st.file_uploader("Sube aquí tu archivo guardado", type="json")
 
-    # Cargamos lo guardado al inicio
-    if "datos_stock" not in st.session_state:
-        st.session_state.datos_stock = {}
+if archivo_subido:
     try:
-        datos_guardados = hoja.get_all_records()
-        for fila in datos_guardados:
-            st.session_state.datos_stock[str(fila["Producto"])] = int(fila["Stock_Actual"])
-        st.success("✅ CARGADO LO QUE TENÍAS HECHO!")
+        datos_cargados = json.load(archivo_subido)
+        st.session_state.datos_stock = datos_cargados.get("productos", {})
+        st.success("✅ ¡RECUPERADO!")
     except:
-        st.info("📝 Empieza registro nuevo.")
+        st.error("❌ Archivo inválido.")
 
-except Exception as e:
-    st.warning("⚠️ Aún no configurado el acceso a Google Sheets. Sigue usando la app normalmente.")
-    if "datos_stock" not in st.session_state:
-        st.session_state.datos_stock = {}
+# Inicializar si está vacío
+if "datos_stock" not in st.session_state:
+    st.session_state.datos_stock = {}
 
 # Configuración general
 st.set_page_config(page_title="Stock Organizado por Fecha", layout="wide")
