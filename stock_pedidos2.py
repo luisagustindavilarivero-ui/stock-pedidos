@@ -212,20 +212,8 @@ datos_finales = {}
 if "datos_stock" not in st.session_state:
     st.session_state.datos_stock = {}
 
-for nombre, cantidad_pedir in productos:
-    valor_guardado = st.session_state.datos_stock.get(nombre, 0)
-    valor_guardado = round(valor_guardado) # Siempre entero
-
-    # ✅ Definimos el paso según el producto
-    if "x kilo" in nombre.lower():
-        paso = 2  # 📦 Kilos: de 2 en 2
-    else:
-        paso = 1  # 🧺 Unidades: de 1 en 1 (anana, mango, etc.)
-        # Espacio para guardar lo que escribas
-if "datos_stock" not in st.session_state:
-    st.session_state.datos_stock = {}
-
-for nombre, cantidad_pedir in productos:
+# ✅ Bucle único, sin repeticiones
+for indice, (nombre, cantidad_pedir) in enumerate(productos):
     valor_guardado = st.session_state.datos_stock.get(nombre, 0)
     valor_guardado = round(valor_guardado) # Siempre entero
 
@@ -242,35 +230,9 @@ for nombre, cantidad_pedir in productos:
         value=valor_guardado,
         step=paso,
         format="%d",
-        key=f"{dia}_{nombre}_{cantidad_pedir}"
+        key=f"{dia}_{indice}_{nombre}"  # Clave única, nunca se repite
     )
     
-    # ✅ ESTAS LÍNEAS SON LAS QUE FALTABAN
-    st.session_state.datos_stock[nombre] = stock_actual
-    
-    datos_finales[nombre] = {
-        "pedir": cantidad_pedir,
-        "stock": stock_actual
-    }
-
-    stock_actual = st.number_input(
-        f"{nombre}",
-        min_value=0,
-        max_value=200,
-        value=valor_guardado,
-        step=paso, # Aquí usamos el paso que corresponde
-        format="%d",
-        key=f"{dia}_{nombre}"
-    )
-    
-    st.session_state.datos_stock[nombre] = stock_actual
-    
-    datos_finales[nombre] = {
-        "pedir": cantidad_pedir,
-        "stock": stock_actual
-    }
-    
-    # Guardamos automáticamente
     st.session_state.datos_stock[nombre] = stock_actual
     
     datos_finales[nombre] = {
