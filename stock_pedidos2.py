@@ -1,22 +1,29 @@
 import streamlit as st
 import json
 import os
-from streamlit_gsheets import GSheetsConnection
+import gspread
+import pandas as pd
+from google.oauth2.service_account import Credentials
 
-# Inicializamos conexión y memoria
-conn = st.connection("gsheets", type=GSheetsConnection)
-
+# Inicializamos memoria y conexión nueva
 if "datos_stock" not in st.session_state:
     st.session_state.datos_stock = {}
-    # Intentamos cargar lo que ya tengas guardado
-    try:
-        df = conn.read()
-        if not df.empty:
-            for _, fila in df.iterrows():
-                st.session_state.datos_stock[str(fila["Producto"])] = int(fila["Stock_Actual"])
-            st.success("✅ CARGADO LO QUE TENÍAS HECHO!")
-    except:
-        st.info("Empieza registro nuevo.")
+
+# Configuración de conexión permanente
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=SCOPES)
+cliente = gspread.authorize(creds)
+HOJA_ID = st.secrets["hoja_id"]
+hoja = cliente.open_by_key(HOJA_ID).sheet1
+
+# Cargamos lo guardado al inicio
+try:
+    datos_guardados = hoja.get_all_records()
+    for fila in datos_guardados:
+        st.session_state.datos_stock[str(fila["Producto"])] = int(fila["Stock_Actual"])
+    st.success("✅ CARGADO LO QUE TENÍAS HECHO!")
+except:
+    st.info("📝 Empieza registro nuevo.")
 
 # Configuración general
 st.set_page_config(page_title="Stock Organizado por Fecha", layout="wide")
