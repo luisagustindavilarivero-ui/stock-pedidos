@@ -218,9 +218,12 @@ productos_por_dia = {
     ]
 }
 
-# ✅ ASEGURAMOS DE CARGAR LA LISTA COMPLETA DE PRODUCTOS
+SELECCIONAMOS EL DÍA
+dia = st.selectbox("📅 Selecciona el día", list(productos_por_dia.keys()))
 productos = productos_por_dia.get(dia, [])
 datos_finales = {}
+
+# ✅ 3. CARGAMOS TU STOCK GUARDADO
 st.subheader("🔄 RECUPERAR STOCK GUARDADO")
 archivo_subido = st.file_uploader("Sube aquí tu archivo .json guardado", type="json", key="carga_archivo_unico")
 
@@ -229,69 +232,52 @@ if archivo_subido:
         datos_cargados = json.load(archivo_subido)
         st.session_state.datos_stock = datos_cargados.get("productos", {})
         st.success("✅ ¡TUS NÚMEROS YA ESTÁN CARGADOS!")
-        st.rerun()
     except Exception as e:
         st.error(f"❌ Archivo inválido: {e}")
 
-# Cargar productos y guardar datos SIN PERDER NADA
-productos = productos_por_dia.get(dia, [])
-datos_finales = {}
-
-# Espacio para guardar lo que escribas
-if "datos_stock" not in st.session_state:
-    st.session_state.datos_stock = {}
-
-# ✅ Bucle único, sin repeticiones
+# ✅ 4. MOSTRAMOS TODOS LOS PRODUCTOS JUNTOS
 for indice, (nombre, cantidad_pedir) in enumerate(productos):
     valor_guardado = st.session_state.datos_stock.get(nombre, 0)
-    # Aseguramos que sea número entero sin errores
     try:
         valor_guardado = int(round(float(valor_guardado)))
     except:
         valor_guardado = 0
 
-    # Definimos el paso según el producto
-if "x kilo" in nombre.lower():
-        paso = 2  # Kilos: de 2 en 2
-else:
-        paso = 1  # Unidades: de 1 en 1
-# ✅ Creamos el recuadro CON TU VALOR GUARDADO
-cantidad = st.number_input(nombre, value=valor_guardado, min_value=0, step=paso, key=f"prod_{indice}")
+    # Definimos paso para kilos/unidades
+    if "x kilo" in nombre.lower():
+        paso = 2
+    else:
+        paso = 1
 
-# ✅ Guardamos automáticamente lo que escribas o cambies
-st.session_state.datos_stock[nombre] = cantidad
+    # Recuadro con tu valor guardado
+    cantidad = st.number_input(nombre, value=valor_guardado, min_value=0, step=paso, key=f"prod_{indice}")
+    st.session_state.datos_stock[nombre] = cantidad
 
-# ✅ Tus cálculos de faltante o sobrante
-falta = cantidad_pedir - cantidad
-if falta > 0:
-    st.write(f"⚠️ Pedir: {cantidad_pedir} | Tienes: {cantidad} | :red[FALTAN: {falta}]")
-else:
-    st.write(f"✅ Pedir: {cantidad_pedir} | Tienes: {cantidad} | :green[COMPLETO: {abs(falta)} DE SOBRANTE]")
+    # Cálculos y colores
+    falta = cantidad_pedir - cantidad
+    if falta > 0:
+        st.write(f"⚠️ Pedir: {cantidad_pedir} | Tienes: {cantidad} | :red[FALTAN: {falta}]")
+    else:
+        st.write(f"✅ Pedir: {cantidad_pedir} | Tienes: {cantidad} | :green[COMPLETO: {abs(falta)} DE SOBRANTE]")
 
-# ✅ Guardamos el dato para el archivo final
-datos_finales[nombre] = {
-    "pedir": cantidad_pedir,
-    "stock": cantidad
-}
+    datos_finales[nombre] = {
+        "pedir": cantidad_pedir,
+        "stock": cantidad
+    }
 
-# Botón seguro: GUARDA Y TE LO BAJA A TU CELULAR
-# 💾 GUARDAR Y DESCARGAR DE VERDAD A TU CELULAR
-if st.button("💾 GUARDAR Y BAJAR ARCHIVO"):
+# ✅ 5. BOTÓN DE GUARDAR Y DESCARGAR
+st.subheader("💾 GUARDAR Y DESCARGAR")
+if st.button("GUARDAR Y BAJAR ARCHIVO"):
     fecha_actual = datetime.now()
     registro = {
-        "fecha": fecha_actual.strftime("%d/%m/%Y"),
+        "Fecha": fecha_actual.strftime("%d/%m/%Y"),
         "productos": st.session_state.datos_stock
     }
     contenido = json.dumps(registro, ensure_ascii=False, indent=2)
-    
-    st.success("✅ ¡LISTO! PULSA EL BOTÓN AZUL ABAJO INMEDIATAMENTE ⬇️")
-    
-    # ESTE BOTÓN SÍ TE LO BAJA A TU CELULAR
     st.download_button(
         label="📥 GUARDAR EN DESCARGAS",
         data=contenido,
         file_name=f"stock_{fecha_actual.strftime('%d-%m-%Y')}.json",
         mime="application/json"
     )
-    
-    st.warning("⚠️ NO CIERRES LA PÁGINA HASTA VER QUE SE DESCARGÓ.")
+    st.success("✅ ¡GUARDADO EXITOSO!")
