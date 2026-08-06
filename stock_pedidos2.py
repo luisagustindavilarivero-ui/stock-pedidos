@@ -259,7 +259,7 @@ for indice, (nombre, cantidad_pedir) in enumerate(productos):
     # Definimos el paso según el producto
 if "x kilo" in nombre.lower():
         paso = 2  # Kilos: de 2 en 2
-    else:
+else:
         paso = 1  # Unidades: de 1 en 1
 # ✅ Creamos el recuadro CON TU VALOR GUARDADO
 cantidad = st.number_input(nombre, value=valor_guardado, min_value=0, step=paso, key=f"prod_{indice}")
