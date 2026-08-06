@@ -39,7 +39,7 @@ dia = st.selectbox(
     "Elige el día de la semana",
     ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"]
 )
-st.subheader(f"📋 Día: {dia} | Fecha: {fecha_mostrar}")
+st.subheader(f"Día seleccionado: {dia}")
 st.info(f"📂 Se guardará en: {CARPETA_RAIZ}/{nombre_mes}/{fecha_archivo}.json")
 st.markdown("---")
 
