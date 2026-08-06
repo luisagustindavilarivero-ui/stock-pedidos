@@ -7,21 +7,22 @@ from google.oauth2.service_account import Credentials
 # ✅ AGREGAS ESTA LÍNEA NUEVA:
 from datetime import datetime
 
-# 📂 RECUPERAR ANTES DE MOSTRAR NADA
-st.subheader("🔄 CARGAR TUS DATOS")
-archivo_subido = st.file_uploader("Sube aquí tu archivo guardado", type="json")
+# 📂 INICIALIZAR MEMORIA Y CARGAR ARCHIVO PRIMERO
+if "datos_stock" not in st.session_state:
+    st.session_state.datos_stock = {}
+
+st.subheader("🔄 RECUPERAR STOCK GUARDADO")
+archivo_subido = st.file_uploader("Sube aquí tu archivo .json guardado", type="json")
 
 if archivo_subido:
     try:
         datos_cargados = json.load(archivo_subido)
         st.session_state.datos_stock = datos_cargados.get("productos", {})
-        st.success("✅ ¡RECUPERADO!")
-    except:
-        st.error("❌ Archivo inválido.")
-
-# Inicializar si está vacío
-if "datos_stock" not in st.session_state:
-    st.session_state.datos_stock = {}
+        st.success("✅ ¡TUS NÚMEROS YA ESTÁN CARGADOS!")
+        # ✅ ESTA LÍNEA RECARGA LA PÁGINA PARA QUE APAREZCAN LOS VALORES
+        st.rerun()
+    except Exception as e:
+        st.error(f"❌ Archivo inválido: {e}")
 
 # Configuración general
 st.set_page_config(page_title="Stock Organizado por Fecha", layout="wide")
@@ -35,6 +36,8 @@ if archivo_subido:
         datos_recuperados = json.load(archivo_subido)
         st.session_state.datos_stock = datos_recuperados.get("productos", {})
         st.success("✅ ¡RECUPERADO! Ya tienes tus números de vuelta.")
+        # ✅ AGREGA ESTA LÍNEA AQUÍ MISMO:
+        st.rerun()
     except:
         st.error("❌ No se pudo leer el archivo, revisa que sea el correcto.")
         
@@ -109,18 +112,21 @@ nombre_mes = fecha_actual.strftime("%B %Y").upper()
 fecha_archivo = fecha_actual.strftime("%d-%m-%Y")
 ruta_archivo_hoy = os.path.join(CARPETA_RAIZ, nombre_mes, f"{fecha_archivo}.json")
 
+# 📂 INICIALIZAMOS Y CARGAMOS DESDE TU ARCHIVO SUBIDO
 if "datos_stock" not in st.session_state:
     st.session_state.datos_stock = {}
-    
-    if os.path.exists(ruta_archivo_hoy):
-        try:
-            with open(ruta_archivo_hoy, "r", encoding="utf-8") as f:
-                datos_guardados = json.load(f)
-                st.session_state.datos_stock = datos_guardados.get("productos", {})
-            st.success("✅ CARGADO LO QUE TENÍAS HECHO! No se perdió nada.")
-        except:
-            st.info("Empieza registro nuevo para hoy.")
 
+st.subheader("🔄 RECUPERAR STOCK GUARDADO")
+archivo_subido = st.file_uploader("Sube aquí tu archivo .json guardado", type="json")
+
+if archivo_subido:
+    try:
+        datos_cargados = json.load(archivo_subido)
+        st.session_state.datos_stock = datos_cargados.get("productos", {})
+        st.success("✅ ¡TUS NÚMEROS YA ESTÁN CARGADOS!")
+        st.rerun()
+    except Exception as e:
+        st.error(f"❌ Archivo inválido: {e}")
 # Lista completa de productos igual que antes
 productos_por_dia = {
     "LUNES": [
@@ -249,7 +255,24 @@ for indice, (nombre, cantidad_pedir) in enumerate(productos):
         valor_guardado = int(round(float(valor_guardado)))
     except:
         valor_guardado = 0
+# ✅ Creamos el recuadro CON TU VALOR GUARDADO
+cantidad = st.number_input(nombre, value=valor_guardado, min_value=0, key=f"prod_{indice}")
 
+# ✅ Guardamos automáticamente lo que escribas o cambies
+st.session_state.datos_stock[nombre] = cantidad
+
+# ✅ Tus cálculos de faltante o sobrante
+falta = cantidad_pedir - cantidad
+if falta > 0:
+    st.write(f"⚠️ Pedir: {cantidad_pedir} | Tienes: {cantidad} | :red[FALTAN: {falta}]")
+else:
+    st.write(f"✅ Pedir: {cantidad_pedir} | Tienes: {cantidad} | :green[COMPLETO: {abs(falta)} DE SOBRANTE]")
+
+# ✅ Guardamos el dato para el archivo final
+datos_finales[nombre] = {
+    "pedir": cantidad_pedir,
+    "stock": cantidad
+}
     # Definimos el paso según el producto
     if "x kilo" in nombre.lower():
         paso = 2  # Kilos: de 2 en 2
