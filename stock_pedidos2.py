@@ -29,17 +29,6 @@ st.set_page_config(page_title="Stock Organizado por Fecha", layout="wide")
 st.title("📦 STOCK Y PEDIDOS - GUARDADO POR MES Y DÍA")
 st.caption("Cada día se guarda en su carpeta del mes, puedes consultar el historial cuando quieras")
 st.markdown("---")
-# 📂 RECUPERAR SI SE REINICIA LA APP
-archivo_subido = st.file_uploader("¿Quedó todo en 0? Sube tu archivo guardado aquí:", type="json")
-if archivo_subido:
-    try:
-        datos_recuperados = json.load(archivo_subido)
-        st.session_state.datos_stock = datos_recuperados.get("productos", {})
-        st.success("✅ ¡RECUPERADO! Ya tienes tus números de vuelta.")
-        # ✅ AGREGA ESTA LÍNEA AQUÍ MISMO:
-        st.rerun()
-    except:
-        st.error("❌ No se pudo leer el archivo, revisa que sea el correcto.")
         
 # Configuración de rutas y nombres
 CARPETA_RAIZ = "REGISTROS_STOCK"
@@ -117,7 +106,7 @@ if "datos_stock" not in st.session_state:
     st.session_state.datos_stock = {}
 
 st.subheader("🔄 RECUPERAR STOCK GUARDADO")
-archivo_subido = st.file_uploader("Sube aquí tu archivo .json guardado", type="json")
+archivo_subido = st.file_uploader("Sube aquí tu archivo .json guardado", type="json", key="carga_archivo_unico")
 
 if archivo_subido:
     try:
