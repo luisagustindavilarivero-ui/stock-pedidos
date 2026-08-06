@@ -255,8 +255,14 @@ for indice, (nombre, cantidad_pedir) in enumerate(productos):
         valor_guardado = int(round(float(valor_guardado)))
     except:
         valor_guardado = 0
+
+    # Definimos el paso según el producto
+if "x kilo" in nombre.lower():
+        paso = 2  # Kilos: de 2 en 2
+    else:
+        paso = 1  # Unidades: de 1 en 1
 # ✅ Creamos el recuadro CON TU VALOR GUARDADO
-cantidad = st.number_input(nombre, value=valor_guardado, min_value=0, key=f"prod_{indice}")
+cantidad = st.number_input(nombre, value=valor_guardado, min_value=0, step=paso, key=f"prod_{indice}")
 
 # ✅ Guardamos automáticamente lo que escribas o cambies
 st.session_state.datos_stock[nombre] = cantidad
@@ -273,39 +279,6 @@ datos_finales[nombre] = {
     "pedir": cantidad_pedir,
     "stock": cantidad
 }
-    # Definimos el paso según el producto
-    if "x kilo" in nombre.lower():
-        paso = 2  # Kilos: de 2 en 2
-    else:
-        paso = 1  # Unidades: de 1 en 1
-
-    stock_actual = st.number_input(
-        f"{nombre}",
-        min_value=0,
-        max_value=200,
-        value=valor_guardado,
-        step=paso,
-        format="%d",
-        key=f"{dia}_{indice}_{nombre}"  # Clave única, nunca se repite
-    )
-    
-    st.session_state.datos_stock[nombre] = stock_actual
-    
-    datos_finales[nombre] = {
-        "pedir": cantidad_pedir,
-        "stock": stock_actual
-    }
-    
-    # Mostrar resultado
-    if cantidad_pedir == 0:
-        st.write(f"👉 Pedir: 0 | Tienes: {stock_actual} | **{VERDE}No se necesita pedir{FIN}**")
-    else:
-        falta = cantidad_pedir - stock_actual
-        if falta > 0:
-            st.write(f"👉 Pedir: {cantidad_pedir} | Tienes: {stock_actual} | **FALTAN: {ROJO}{falta}{FIN}**")
-        else:
-            st.write(f"👉 Pedir: {cantidad_pedir} | Tienes: {stock_actual} | **COMPLETO: {VERDE}{abs(falta)} DE SOBRANTE{FIN}**")
-    st.markdown("---")
 
 # Botón seguro: GUARDA Y TE LO BAJA A TU CELULAR
 # 💾 GUARDAR Y DESCARGAR DE VERDAD A TU CELULAR
