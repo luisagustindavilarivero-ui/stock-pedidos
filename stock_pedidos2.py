@@ -105,17 +105,7 @@ ruta_archivo_hoy = os.path.join(CARPETA_RAIZ, nombre_mes, f"{fecha_archivo}.json
 if "datos_stock" not in st.session_state:
     st.session_state.datos_stock = {}
 
-st.subheader("🔄 RECUPERAR STOCK GUARDADO")
-archivo_subido = st.file_uploader("Sube aquí tu archivo .json guardado", type="json", key="carga_archivo_unico")
 
-if archivo_subido:
-    try:
-        datos_cargados = json.load(archivo_subido)
-        st.session_state.datos_stock = datos_cargados.get("productos", {})
-        st.success("✅ ¡TUS NÚMEROS YA ESTÁN CARGADOS!")
-        st.rerun()
-    except Exception as e:
-        st.error(f"❌ Archivo inválido: {e}")
 # Lista completa de productos igual que antes
 productos_por_dia = {
     "LUNES": [
@@ -227,6 +217,21 @@ productos_por_dia = {
         ("Tomate perita x kilo", 0), ("Tomate x kilo Goddard", 120), ("Zanahoria x kilo", 34), ("Zapallito x kilo", 74)
     ]
 }
+
+# ✅ ASEGURAMOS DE CARGAR LA LISTA COMPLETA DE PRODUCTOS
+productos = productos_por_dia.get(dia, [])
+datos_finales = {}
+st.subheader("🔄 RECUPERAR STOCK GUARDADO")
+archivo_subido = st.file_uploader("Sube aquí tu archivo .json guardado", type="json", key="carga_archivo_unico")
+
+if archivo_subido:
+    try:
+        datos_cargados = json.load(archivo_subido)
+        st.session_state.datos_stock = datos_cargados.get("productos", {})
+        st.success("✅ ¡TUS NÚMEROS YA ESTÁN CARGADOS!")
+        st.rerun()
+    except Exception as e:
+        st.error(f"❌ Archivo inválido: {e}")
 
 # Cargar productos y guardar datos SIN PERDER NADA
 productos = productos_por_dia.get(dia, [])
