@@ -1,5 +1,4 @@
 import streamlit as st
-import json
 from datetime import datetime
 from supabase import create_client, Client
 
@@ -33,57 +32,8 @@ st.set_page_config(page_title="Stock Organizado por Fecha", layout="wide")
 st.title("📦 STOCK Y PEDIDOS - GUARDADO POR MES Y DÍA")
 st.caption("Cada día se guarda en su carpeta del mes, puedes consultar el historial cuando quieras")
 st.markdown("---")
-        
-# Configuración de rutas y nombres
-CARPETA_RAIZ = "REGISTROS_STOCK"
-fecha_actual = datetime.now()
-nombre_mes = fecha_actual.strftime("%B %Y").upper()
-fecha_archivo = fecha_actual.strftime("%d-%m-%Y")
-fecha_mostrar = fecha_actual.strftime("%d/%m/%Y")
-ruta_completa = os.path.join(CARPETA_RAIZ, nombre_mes)
 
-# Crear carpetas si no existen
-os.makedirs(ruta_completa, exist_ok=True)
 
-# Función para guardar el registro del día
-def guardar_registro(dia, datos_productos):
-    import subprocess
-
-    # Datos completos del registro
-    registro_completo = {
-        "fecha": fecha_actual.strftime("%d/%m/%Y"),
-        "dia_semana": dia,
-        "hora_registro": fecha_actual.strftime("%H:%M"),
-        "productos": datos_productos
-    }
-
-    # Nombres y enlaces directos a GitHub
-    nombre_archivo = f"{fecha_archivo}.json"
-    ruta_archivo = os.path.join(ruta_completa, nombre_archivo)
-    enlace_carpeta = "https://github.com/luisagustindavilarivero-ui/stock-pedidos/tree/main/REGISTROS_STOCK"
-    enlace_archivo = f"https://github.com/luisagustindavilarivero-ui/stock-pedidos/blob/main/{CARPETA_RAIZ}/{nombre_mes}/{nombre_archivo}"
-
-    # Guardar el archivo
-    with open(ruta_archivo, "w", encoding="utf-8") as f:
-        json.dump(registro_completo, f, ensure_ascii=False, indent=2)
-
-    # Subir automáticamente a tu repositorio
-    try:
-        subprocess.run(["git", "config", "--global", "user.email", "luisagustindavilarivero-ui@users.noreply.github.com"], check=True)
-        subprocess.run(["git", "config", "--global", "user.name", "luisagustindavilarivero-ui"], check=True)
-        subprocess.run(["git", "add", ruta_archivo], check=True)
-        subprocess.run(["git", "commit", "-m", f"Registro guardado: {fecha_archivo} - {dia}"], check=True)
-        subprocess.run(["git", "push"], check=True)
-
-        # Mensajes con enlaces clicables
-        st.success("✅ GUARDADO EXITOSO Y SUBIDO A GITHUB!")
-        st.markdown(f"📂 **Abrir este archivo:** [{CARPETA_RAIZ}/{nombre_mes}/{nombre_archivo}]({enlace_archivo})")
-        st.markdown(f"[📂 VER TODA LA CARPETA DE REGISTROS]({enlace_carpeta})")
-        st.info("Toca los enlaces para abrir, ver o modificar directamente en GitHub.")
-
-    except Exception as e:
-        st.error(f"⚠️ El archivo se guardó, hubo un detalle al subir: {str(e)}")
-        st.markdown(f"[📂 Ir a mi repositorio](https://github.com/luisagustindavilarivero-ui/stock-pedidos)")
 # Seleccionar día
 dia = st.selectbox(
     "Elige el día de la semana",
@@ -97,17 +47,6 @@ st.markdown("---")
 VERDE = ":green["
 ROJO = ":red["
 FIN = "]"
-
-# ✅ PEGA AQUÍ MISMO EL CÓDIGO DE CARGA AUTOMÁTICA QUE TE PASÉ
-# CARGAR LO QUE YA GUARDASTE DEL DÍA AL ABRIR LA PÁGINA
-CARPETA_RAIZ = "REGISTROS_STOCK"
-nombre_mes = fecha_actual.strftime("%B %Y").upper()
-fecha_archivo = fecha_actual.strftime("%d-%m-%Y")
-ruta_archivo_hoy = os.path.join(CARPETA_RAIZ, nombre_mes, f"{fecha_archivo}.json")
-
-# 📂 INICIALIZAMOS Y CARGAMOS DESDE TU ARCHIVO SUBIDO
-if "datos_stock" not in st.session_state:
-    st.session_state.datos_stock = {}
 
 
 # Lista completa de productos igual que antes
