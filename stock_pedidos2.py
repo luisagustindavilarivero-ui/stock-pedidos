@@ -1,28 +1,32 @@
 import streamlit as st
 import json
-import os
-import gspread
-import pandas as pd
-from google.oauth2.service_account import Credentials
-# ✅ AGREGAS ESTA LÍNEA NUEVA:
 from datetime import datetime
+from supabase import create_client, Client
 
-# 📂 INICIALIZAR MEMORIA Y CARGAR ARCHIVO PRIMERO
-if "datos_stock" not in st.session_state:
-    st.session_state.datos_stock = {}
+# CONEXIÓN A TU BASE PERMANENTE DE SUPABASE
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-st.subheader("🔄 RECUPERAR STOCK GUARDADO")
-archivo_subido = st.file_uploader("Sube aquí tu archivo .json guardado", type="json")
-
-if archivo_subido:
+# FUNCIÓN PARA CARGAR LO ÚLTIMO GUARDADO
+def cargar_stock():
     try:
-        datos_cargados = json.load(archivo_subido)
-        st.session_state.datos_stock = datos_cargados.get("productos", {})
-        st.success("✅ ¡TUS NÚMEROS YA ESTÁN CARGADOS!")
-        # ✅ ESTA LÍNEA RECARGA LA PÁGINA PARA QUE APAREZCAN LOS VALORES
-        st.rerun()
+        res = supabase.table("stock_actual").select("*").execute()
+        return {fila["producto"]: fila["cantidad"] for fila in res.data}
     except Exception as e:
-        st.error(f"❌ Archivo inválido: {e}")
+        st.error(f"Error al cargar: {e}")
+        return {}
+
+# FUNCIÓN PARA GUARDAR CAMBIOS AUTOMÁTICOS
+def guardar_cambio(nombre, cantidad):
+    supabase.table("stock_actual").upsert({
+        "producto": nombre,
+        "cantidad": cantidad
+    }).execute()
+
+# CARGA INICIAL AL ABRIR LA PÁGINA
+datos_base = cargar_stock()
+st.success("✅ CONECTADO — TUS DATOS SE GUARDAN PARA SIEMPRE!")
 
 # Configuración general
 st.set_page_config(page_title="Stock Organizado por Fecha", layout="wide")
@@ -235,49 +239,48 @@ if archivo_subido:
     except Exception as e:
         st.error(f"❌ Archivo inválido: {e}")
 
-# ✅ 4. MOSTRAMOS TODOS LOS PRODUCTOS JUNTOS
+# === RECORREMOS TODOS LOS PRODUCTOS ===
 for indice, (nombre, cantidad_pedir) in enumerate(productos):
-    valor_guardado = st.session_state.datos_stock.get(nombre, 0)
-    try:
-        valor_guardado = int(round(float(valor_guardado)))
-    except:
-        valor_guardado = 0
-
-    # Definimos paso para kilos/unidades
+    # 1. CARGA LO ÚLTIMO GUARDADO EN LA BASE (si no existe pone 0)
+    valor_guardado = datos_base.get(nombre, 0)
+    
+    # 2. DEFINE EL PASO: 2 para kilos, 1 para unidades
     if "x kilo" in nombre.lower():
         paso = 2
     else:
         paso = 1
-
-    # Recuadro con tu valor guardado
+    
+    # 3. RECUADRO PARA MODIFICAR (usa el valor seguro)
     cantidad = st.number_input(nombre, value=valor_guardado, min_value=0, step=paso, key=f"prod_{indice}")
-    st.session_state.datos_stock[nombre] = cantidad
-
-    # Cálculos y colores
+    
+    # 4. SI CAMBIA EL NÚMERO → LO GUARDA AUTOMÁTICAMENTE EN LA BASE
+    if cantidad != valor_guardado:
+        guardar_cambio(nombre, cantidad)
+    
+    # === SIGUEN TUS CUENTAS Y COLORES (NO BORRES ESTO) ===
     falta = cantidad_pedir - cantidad
     if falta > 0:
         st.write(f"⚠️ Pedir: {cantidad_pedir} | Tienes: {cantidad} | :red[FALTAN: {falta}]")
     else:
         st.write(f"✅ Pedir: {cantidad_pedir} | Tienes: {cantidad} | :green[COMPLETO: {abs(falta)} DE SOBRANTE]")
 
-    datos_finales[nombre] = {
-        "pedir": cantidad_pedir,
-        "stock": cantidad
-    }
 
-# ✅ 5. BOTÓN DE GUARDAR Y DESCARGAR
-st.subheader("💾 GUARDAR Y DESCARGAR")
-if st.button("GUARDAR Y BAJAR ARCHIVO"):
-    fecha_actual = datetime.now()
-    registro = {
-        "Fecha": fecha_actual.strftime("%d/%m/%Y"),
-        "productos": st.session_state.datos_stock
-    }
-    contenido = json.dumps(registro, ensure_ascii=False, indent=2)
+# 📥 BOTÓN PARA DESCARGAR RESPALDO (OPCIONAL)
+st.subheader("📂 DESCARGAR RESPALDO DE STOCK")
+if st.button("GUARDAR Y DESCARGAR COPIA"):
+    # Traemos todos los datos frescos de la base
+    todos_los_datos = supabase.table("stock_actual").select("*").execute().data
+    fecha_archivo = datetime.now().strftime("%d-%m-%Y_%H-%M")
+    nombre_archivo = f"stock_respaldo_{fecha_archivo}.json"
+    
+    # Convertimos a formato descargable
+    import json
+    contenido_json = json.dumps(todos_los_datos, indent=2, ensure_ascii=False)
+    
     st.download_button(
-        label="📥 GUARDAR EN DESCARGAS",
-        data=contenido,
-        file_name=f"stock_{fecha_actual.strftime('%d-%m-%Y')}.json",
+        label="📥 BAJAR ARCHIVO",
+        data=contenido_json,
+        file_name=nombre_archivo,
         mime="application/json"
     )
-    st.success("✅ ¡GUARDADO EXITOSO!")
+    st.success("✅ RESPALDO DESCARGADO CON ÉXITO!")
