@@ -218,7 +218,7 @@ productos_por_dia = {
     ]
 }
 
-SELECCIONAMOS EL DÍA
+#SELECCIONAMOS EL DÍA
 dia = st.selectbox("📅 Selecciona el día", list(productos_por_dia.keys()))
 productos = productos_por_dia.get(dia, [])
 datos_finales = {}
